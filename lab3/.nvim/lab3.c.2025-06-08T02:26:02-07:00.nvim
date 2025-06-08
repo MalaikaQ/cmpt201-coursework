@@ -1,0 +1,60 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define _POSIX_C_SOURCE 200809L
+
+#define HISTORY_SIZE 5
+
+char *history[HISTORY_SIZE];
+int count = 0;
+
+void add_to_history(char *line) {
+    int index = count % HISTORY_SIZE;
+
+    // Free existing entry if any
+    if (history[index] != NULL) {
+        free(history[index]);
+    }
+
+    history[index] = strdup(line);  // Copy the line into history
+    count++;
+}
+
+void print_history() {
+    int start = count >= HISTORY_SIZE ? count - HISTORY_SIZE : 0;
+    for (int i = start; i < count; i++) {
+        int index = i % HISTORY_SIZE;
+        printf("%s\n", history[index]);
+    }
+}
+
+int main(void) {
+    char *line = NULL;
+    size_t len = 0;
+
+    while (1) {
+        printf("Enter input: ");
+        ssize_t read = getline(&line, &len, stdin);
+
+        if (read == -1) break; // EOF or Ctrl+C
+
+        // Remove newline
+        if (line[read - 1] == '\n') {
+            line[read - 1] = '\0';
+        }
+
+        add_to_history(line);
+
+        if (strcmp(line, "print") == 0) {
+            print_history();
+        }
+    }
+
+    // Clean up history
+    for (int i = 0; i < HISTORY_SIZE; i++) {
+        free(history[i]);
+    }
+    free(line);
+    return 0;
+}
+
